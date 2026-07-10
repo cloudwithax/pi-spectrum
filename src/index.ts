@@ -4,6 +4,7 @@ import { terminal } from "spectrum-ts/providers/terminal";
 import { loadConfig } from "./config.ts";
 import { createAgentRunner } from "./agent.ts";
 import { logger } from "./logger.ts";
+import { stripMarkdown, splitResponse, DebounceQueue, sendPaced } from "./imessage-utils.ts";
 import * as readline from "node:readline";
 
 async function runTerminal(config: ReturnType<typeof loadConfig>) {
@@ -117,6 +118,99 @@ async function runSpectrum(config: ReturnType<typeof loadConfig>) {
 
   logger.info("Connected to Spectrum. Listening for messages...");
 
+  const debounce = new DebounceQueue(async (chatId, messages) => {
+    // Use the last message's context for the response
+    const last = messages[messages.length - 1];
+    const space = last.space;
+
+    logger.info("Debounce flush", { chatId, count: messages.length });
+
+    await space?.responding(async () => {
+      // If multiple messages accumulated, treat earlier ones as context
+      let userText = messages.map((m) => m.text).join("\n");
+
+      // Only log individual incoming for each message
+      for (const m of messages) {
+        logger.incoming(m.platform, m.sender, m.text, m.id);
+      }
+
+      // Handle commands from any message in the batch
+      for (const m of messages) {
+        if (m.text.toLowerCase() === "/quit" || m.text.toLowerCase() === "/exit") {
+          logger.info("Shutdown requested");
+          agent.stop();
+          await app.stop();
+          process.exit(0);
+        }
+        if (m.text.toLowerCase() === "/clear") {
+          logger.info("Clear command received", { spaceId: chatId });
+          await space?.send(text("Conversation cleared."));
+          return;
+        }
+      }
+
+      try {
+        let response = "";
+
+        for await (const event of agent.prompt(userText)) {
+          if (event.type === "agent_start") {
+            logger.agentStart(last.id);
+          }
+          if (event.type === "turn_start") {
+            logger.turnStart(last.id);
+          }
+          if (event.type === "message_update" && event.message.role === "assistant") {
+            for (const block of event.message.content) {
+              if (block.type === "toolCall") {
+                logger.toolCall(block.name, block.arguments, last.id);
+              }
+            }
+          }
+          if (event.type === "message_end" && event.message.role === "assistant") {
+            for (const block of event.message.content) {
+              if (block.type === "text") {
+                response = block.text;
+              }
+              if (block.type === "toolCall") {
+                logger.toolCall(block.name, block.arguments, last.id);
+              }
+            }
+            logger.llmResponse(config.llm.model, event.message.stopReason, event.message.usage);
+          }
+          if (event.type === "tool_execution_start") {
+            logger.toolCall(event.toolName, event.args, last.id);
+          }
+          if (event.type === "tool_execution_end") {
+            logger.toolResult(event.toolName, event.result, event.isError, last.id);
+          }
+          if (event.type === "agent_end") {
+            logger.agentEnd(last.id, event.messages.length);
+          }
+        }
+
+        if (response) {
+          // Strip markdown for iMessage compatibility
+          const cleanResponse = stripMarkdown(response);
+          logger.outgoing(chatId, cleanResponse);
+          await sendPaced(
+            (t) => space!.send(text(t)),
+            splitResponse(cleanResponse),
+          );
+        } else {
+          logger.warn("No response generated", { messageId: last.id });
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        logger.error("Error processing message", {
+          messageId: last.id,
+          error: errorMsg,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        await space?.send(text(`Error: ${errorMsg}`));
+      }
+    });
+  }, 3000); // 3 second debounce window
+
   for await (const [space, message] of app.messages) {
     logger.raw({ event: "raw_message", messageId: message.id, content: message.content, sender: message.sender });
 
@@ -136,79 +230,15 @@ async function runSpectrum(config: ReturnType<typeof loadConfig>) {
       continue;
     }
 
-    const msgText = textContent.text;
-    const senderId = message.sender?.id ?? "unknown";
-    logger.incoming(message.platform, senderId, msgText, message.id);
-
-    if (msgText.toLowerCase() === "/quit" || msgText.toLowerCase() === "/exit") {
-      logger.info("Shutdown requested");
-      agent.stop();
-      await app.stop();
-      process.exit(0);
-    }
-
-    if (msgText.toLowerCase() === "/clear") {
-      logger.info("Clear command received", { spaceId: space.id });
-      await space.send(text("Conversation cleared."));
-      continue;
-    }
-
-    try {
-      await space.responding(async () => {
-        let response = "";
-
-        for await (const event of agent.prompt(msgText)) {
-          if (event.type === "agent_start") {
-            logger.agentStart(message.id);
-          }
-          if (event.type === "turn_start") {
-            logger.turnStart(message.id);
-          }
-          if (event.type === "message_update" && event.message.role === "assistant") {
-            for (const block of event.message.content) {
-              if (block.type === "toolCall") {
-                logger.toolCall(block.name, block.arguments, message.id);
-              }
-            }
-          }
-          if (event.type === "message_end" && event.message.role === "assistant") {
-            for (const block of event.message.content) {
-              if (block.type === "text") {
-                response = block.text;
-              }
-              if (block.type === "toolCall") {
-                logger.toolCall(block.name, block.arguments, message.id);
-              }
-            }
-            logger.llmResponse(config.llm.model, event.message.stopReason, event.message.usage);
-          }
-          if (event.type === "tool_execution_start") {
-            logger.toolCall(event.toolName, event.args, message.id);
-          }
-          if (event.type === "tool_execution_end") {
-            logger.toolResult(event.toolName, event.result, event.isError, message.id);
-          }
-          if (event.type === "agent_end") {
-            logger.agentEnd(message.id, event.messages.length);
-          }
-        }
-
-        if (response) {
-          logger.outgoing(space.id, response);
-          await space.send(text(response));
-        } else {
-          logger.warn("No response generated", { messageId: message.id });
-        }
-      });
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      logger.error("Error processing message", {
-        messageId: message.id,
-        error: errorMsg,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      await space.send(text(`Error: ${errorMsg}`));
-    }
+    // Enqueue into debounce queue instead of processing immediately
+    debounce.push(message.platform, {
+      id: message.id,
+      text: textContent.text,
+      sender: message.sender?.id ?? "unknown",
+      platform: message.platform,
+      timestamp: new Date(),
+      space,
+    });
   }
 }
 
