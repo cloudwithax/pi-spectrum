@@ -1,0 +1,12 @@
+{"timestamp":"2026-07-10T17:03:54.593Z","event":"agent_start","messageId":"hello, what files are in the current directory?"}
+{"timestamp":"2026-07-10T17:03:54.597Z","event":"turn_start","messageId":"hello, what files are in the current directory?"}
+{"timestamp":"2026-07-10T17:03:57.167Z","event":"turn_start","messageId":"hello, what files are in the current directory?"}
+{"timestamp":"2026-07-10T17:04:01.897Z","event":"agent_end","messageId":"hello, what files are in the current directory?","messageCount":4}
+{"timestamp":"2026-07-10T17:04:09.852Z","event":"agent_start","messageId":"can you read joke.py back to me?"}
+{"timestamp":"2026-07-10T17:04:09.853Z","event":"turn_start","messageId":"can you read joke.py back to me?"}
+{"timestamp":"2026-07-10T17:04:13.364Z","event":"turn_start","messageId":"can you read joke.py back to me?"}
+{"timestamp":"2026-07-10T17:04:15.776Z","event":"agent_end","messageId":"can you read joke.py back to me?","messageCount":4}
+{"timestamp":"2026-07-10T17:04:17.858Z","event":"agent_start","messageId":"now run joke.py with python3"}
+{"timestamp":"2026-07-10T17:04:17.859Z","event":"turn_start","messageId":"now run joke.py with python3"}
+{"timestamp":"2026-07-10T17:04:23.796Z","event":"turn_start","messageId":"now run joke.py with python3"}
+{"timestamp":"2026-07-10T17:04:29.468Z","event":"agent_end","messageId":"now run joke.py with python3","messageCount":4}

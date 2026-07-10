@@ -1,17 +1,19 @@
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { Type } from "@earendil-works/pi-ai";
+import { dirname } from "node:path";
+import { Type, type Static } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { logger } from "./logger.ts";
 
-export const readFileTool: AgentTool = {
+const readFileSchema = Type.Object({
+  path: Type.String({ description: "Path to the file to read" }),
+});
+
+export const readFileTool: AgentTool<typeof readFileSchema> = {
   name: "readFile",
   label: "Read File",
   description: "Read the contents of a file at the given path",
-  parameters: Type.Object({
-    path: Type.String({ description: "Path to the file to read" }),
-  }),
+  parameters: readFileSchema,
   async execute(_toolCallId, params) {
     logger.toolCall("readFile", params, _toolCallId);
     try {
@@ -32,14 +34,16 @@ export const readFileTool: AgentTool = {
   },
 };
 
-export const writeFileTool: AgentTool = {
+const writeFileSchema = Type.Object({
+  path: Type.String({ description: "Path to the file to write" }),
+  content: Type.String({ description: "Content to write to the file" }),
+});
+
+export const writeFileTool: AgentTool<typeof writeFileSchema> = {
   name: "writeFile",
   label: "Write File",
   description: "Write content to a file, creating directories if needed",
-  parameters: Type.Object({
-    path: Type.String({ description: "Path to the file to write" }),
-    content: Type.String({ description: "Content to write to the file" }),
-  }),
+  parameters: writeFileSchema,
   async execute(_toolCallId, params) {
     logger.toolCall("writeFile", { path: params.path, contentLength: params.content.length }, _toolCallId);
     try {
@@ -64,15 +68,17 @@ export const writeFileTool: AgentTool = {
   },
 };
 
-export const editFileTool: AgentTool = {
+const editFileSchema = Type.Object({
+  path: Type.String({ description: "Path to the file to edit" }),
+  oldString: Type.String({ description: "Exact string to find and replace" }),
+  newString: Type.String({ description: "New string to replace with" }),
+});
+
+export const editFileTool: AgentTool<typeof editFileSchema> = {
   name: "editFile",
   label: "Edit File",
   description: "Edit a file by replacing an exact string match with new content",
-  parameters: Type.Object({
-    path: Type.String({ description: "Path to the file to edit" }),
-    oldString: Type.String({ description: "Exact string to find and replace" }),
-    newString: Type.String({ description: "New string to replace with" }),
-  }),
+  parameters: editFileSchema,
   async execute(_toolCallId, params) {
     logger.toolCall("editFile", { path: params.path, oldStringLength: params.oldString.length, newStringLength: params.newString.length }, _toolCallId);
     try {
@@ -102,13 +108,15 @@ export const editFileTool: AgentTool = {
   },
 };
 
-export const bashTool: AgentTool = {
+const bashSchema = Type.Object({
+  command: Type.String({ description: "Bash command to execute" }),
+});
+
+export const bashTool: AgentTool<typeof bashSchema> = {
   name: "bash",
   label: "Bash",
   description: "Execute a bash command and return its output",
-  parameters: Type.Object({
-    command: Type.String({ description: "Bash command to execute" }),
-  }),
+  parameters: bashSchema,
   async execute(_toolCallId, params) {
     logger.toolCall("bash", { command: params.command }, _toolCallId);
     try {
@@ -133,13 +141,15 @@ export const bashTool: AgentTool = {
   },
 };
 
-export const listFilesTool: AgentTool = {
+const listFilesSchema = Type.Object({
+  path: Type.String({ description: "Directory path to list" }),
+});
+
+export const listFilesTool: AgentTool<typeof listFilesSchema> = {
   name: "listFiles",
   label: "List Files",
   description: "List files and directories at the given path",
-  parameters: Type.Object({
-    path: Type.String({ description: "Directory path to list" }),
-  }),
+  parameters: listFilesSchema,
   async execute(_toolCallId, params) {
     logger.toolCall("listFiles", { path: params.path }, _toolCallId);
     try {

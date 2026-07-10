@@ -1,5 +1,6 @@
 export interface Config {
-  spectrum: {
+  mode: "spectrum" | "terminal";
+  spectrum?: {
     projectId: string;
     projectSecret: string;
     webhookSecret?: string;
@@ -20,14 +21,19 @@ export function loadConfig(): Config {
   const apiKey = process.env.LLM_API_KEY;
   const model = process.env.LLM_MODEL || "mimo-v2.5";
   const workingDirectory = process.env.WORKING_DIRECTORY || process.cwd();
+  const mode: "spectrum" | "terminal" = process.env.MODE === "spectrum" && projectId && projectSecret ? "spectrum" : "terminal";
 
-  if (!projectId) throw new Error("SPECTRUM_PROJECT_ID is required");
-  if (!projectSecret) throw new Error("SPECTRUM_PROJECT_SECRET is required");
   if (!baseUrl) throw new Error("LLM_BASE_URL is required");
   if (!apiKey) throw new Error("LLM_API_KEY is required");
 
+  if (mode === "spectrum") {
+    if (!projectId) throw new Error("SPECTRUM_PROJECT_ID is required for spectrum mode");
+    if (!projectSecret) throw new Error("SPECTRUM_PROJECT_SECRET is required for spectrum mode");
+  }
+
   return {
-    spectrum: { projectId, projectSecret, webhookSecret },
+    mode,
+    spectrum: mode === "spectrum" ? { projectId: projectId!, projectSecret: projectSecret!, webhookSecret } : undefined,
     llm: { baseUrl, apiKey, model },
     workingDirectory,
   };
