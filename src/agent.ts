@@ -4,6 +4,7 @@ import { streamSimple } from "@earendil-works/pi-ai/compat";
 import { agentLoop, type AgentEvent, type AgentMessage, type AgentLoopConfig } from "@earendil-works/pi-agent-core";
 import type { Config } from "./config.ts";
 import { allTools } from "./tools.ts";
+import { logger } from "./logger.ts";
 
 const SYSTEM_PROMPT = `You are an AI coding assistant integrated into iMessage. You can help with:
 - Reading, writing, and editing files
@@ -46,6 +47,15 @@ export function createAgentRunner(config: Config): AgentRunner {
     context: Context,
     options?: SimpleStreamOptions,
   ): AssistantMessageEventStream => {
+    logger.llmRequest(model.id, context.messages.length);
+    logger.debug("LLM request details", {
+      model: model.id,
+      provider: model.provider,
+      baseUrl: model.baseUrl,
+      messageCount: context.messages.length,
+      systemPromptLength: context.systemPrompt?.length ?? 0,
+      toolCount: context.tools?.length ?? 0,
+    });
     return streamSimple(model, context, {
       ...options,
       apiKey: config.llm.apiKey,
@@ -76,6 +86,11 @@ export function createAgentRunner(config: Config): AgentRunner {
       timestamp: Date.now(),
     };
 
+    logger.debug("Creating agent prompt", {
+      userMessage,
+      existingMessages: messages.length,
+    });
+
     const context = {
       systemPrompt: SYSTEM_PROMPT,
       messages: [...messages, agentMessage],
@@ -97,11 +112,15 @@ export function createAgentRunner(config: Config): AgentRunner {
     );
 
     for await (const event of stream) {
-      yield event;
+      logger.debug("Agent event", { event: event.type });
+
       if (event.type === "message_end" && event.message.role === "assistant") {
         messages.push(agentMessage);
         messages.push(event.message);
+        logger.debug("Messages updated", { totalMessages: messages.length });
       }
+
+      yield event;
     }
 
     return messages;
@@ -109,6 +128,9 @@ export function createAgentRunner(config: Config): AgentRunner {
 
   return {
     prompt,
-    stop: () => abortController?.abort(),
+    stop: () => {
+      logger.info("Agent stopping");
+      abortController?.abort();
+    },
   };
 }
