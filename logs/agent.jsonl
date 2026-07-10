@@ -1,6 +1,0 @@
-{"timestamp":"2026-07-10T17:17:36.927Z","event":"agent_start","messageId":"spc-msg-cdb53ad0-964f-4bfd-8fe3-4273ce66e620"}
-{"timestamp":"2026-07-10T17:17:36.932Z","event":"turn_start","messageId":"spc-msg-cdb53ad0-964f-4bfd-8fe3-4273ce66e620"}
-{"timestamp":"2026-07-10T17:17:41.981Z","event":"agent_end","messageId":"spc-msg-cdb53ad0-964f-4bfd-8fe3-4273ce66e620","messageCount":2}
-{"timestamp":"2026-07-10T17:17:49.688Z","event":"agent_start","messageId":"spc-msg-7c21efaa-daf7-4b58-b06b-2084bf3cb976"}
-{"timestamp":"2026-07-10T17:17:49.689Z","event":"turn_start","messageId":"spc-msg-7c21efaa-daf7-4b58-b06b-2084bf3cb976"}
-{"timestamp":"2026-07-10T17:17:56.559Z","event":"agent_end","messageId":"spc-msg-7c21efaa-daf7-4b58-b06b-2084bf3cb976","messageCount":2}
