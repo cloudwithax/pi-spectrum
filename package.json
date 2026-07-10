@@ -1,0 +1,26 @@
+{
+  "name": "pi-spectrum",
+  "version": "0.1.0",
+  "description": "Pi coding agent harness + Spectrum iMessage provider = ultimate iMessage coding agent",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "spectrum-ts": "^0.1.0",
+    "@earendil-works/pi-ai": "^0.80.6",
+    "@earendil-works/pi-agent-core": "^0.80.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "tsx": "^4.22.1",
+    "@types/node": "^22.19.19"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}
