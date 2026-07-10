@@ -1,1 +1,2 @@
-{"timestamp":"2026-07-10T17:03:54.563Z","level":"info","message":"Starting pi-spectrum in TERMINAL mode","model":"mimo-v2.5","workingDirectory":"/tmp/pi-spectrum-workspace"}
+{"timestamp":"2026-07-10T17:17:29.927Z","level":"info","message":"Starting pi-spectrum in SPECTRUM mode","model":"mimo-v2.5","workingDirectory":"/tmp/pi-spectrum-workspace","projectId":"61460ca8-9f55-44d2-9b58-900b457ed912"}
+{"timestamp":"2026-07-10T17:17:30.719Z","level":"info","message":"Connected to Spectrum. Listening for messages..."}

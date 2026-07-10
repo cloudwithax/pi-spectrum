@@ -1,12 +1,4 @@
-{"timestamp":"2026-07-10T17:03:54.595Z","event":"request","model":"mimo-v2.5","messageCount":2}
-{"timestamp":"2026-07-10T17:03:57.141Z","event":"response","model":"mimo-v2.5","stopReason":"toolUse","usage":{"input":38,"output":33,"cacheRead":1024,"cacheWrite":0,"reasoning":13,"totalTokens":1095,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
-{"timestamp":"2026-07-10T17:03:57.164Z","event":"request","model":"mimo-v2.5","messageCount":4}
-{"timestamp":"2026-07-10T17:04:01.895Z","event":"response","model":"mimo-v2.5","stopReason":"stop","usage":{"input":581,"output":155,"cacheRead":1024,"cacheWrite":0,"reasoning":9,"totalTokens":1760,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
-{"timestamp":"2026-07-10T17:04:09.852Z","event":"request","model":"mimo-v2.5","messageCount":6}
-{"timestamp":"2026-07-10T17:04:13.356Z","event":"response","model":"mimo-v2.5","stopReason":"toolUse","usage":{"input":270,"output":34,"cacheRead":1024,"cacheWrite":0,"reasoning":11,"totalTokens":1328,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
-{"timestamp":"2026-07-10T17:04:13.361Z","event":"request","model":"mimo-v2.5","messageCount":8}
-{"timestamp":"2026-07-10T17:04:15.775Z","event":"response","model":"mimo-v2.5","stopReason":"stop","usage":{"input":79,"output":81,"cacheRead":1280,"cacheWrite":0,"reasoning":17,"totalTokens":1440,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
-{"timestamp":"2026-07-10T17:04:17.858Z","event":"request","model":"mimo-v2.5","messageCount":10}
-{"timestamp":"2026-07-10T17:04:23.662Z","event":"response","model":"mimo-v2.5","stopReason":"toolUse","usage":{"input":425,"output":45,"cacheRead":1024,"cacheWrite":0,"reasoning":19,"totalTokens":1494,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
-{"timestamp":"2026-07-10T17:04:23.794Z","event":"request","model":"mimo-v2.5","messageCount":12}
-{"timestamp":"2026-07-10T17:04:29.468Z","event":"response","model":"mimo-v2.5","stopReason":"stop","usage":{"input":136,"output":102,"cacheRead":1408,"cacheWrite":0,"reasoning":20,"totalTokens":1646,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
+{"timestamp":"2026-07-10T17:17:36.928Z","event":"request","model":"mimo-v2.5","messageCount":2}
+{"timestamp":"2026-07-10T17:17:41.979Z","event":"response","model":"mimo-v2.5","stopReason":"stop","usage":{"input":20,"output":126,"cacheRead":1024,"cacheWrite":0,"reasoning":85,"totalTokens":1170,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
+{"timestamp":"2026-07-10T17:17:49.688Z","event":"request","model":"mimo-v2.5","messageCount":4}
+{"timestamp":"2026-07-10T17:17:56.559Z","event":"response","model":"mimo-v2.5","stopReason":"stop","usage":{"input":162,"output":267,"cacheRead":1024,"cacheWrite":0,"reasoning":28,"totalTokens":1453,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}}}
