@@ -20,9 +20,12 @@ import {
   type StoredEntity,
 } from "./db.ts";
 import { logger } from "../logger.ts";
+import { initKeywordSchema, backfillKeywords, indexMessageKeywords } from "./keywords.ts";
 
 export async function initMemory(dbPath?: string): Promise<void> {
   getDb(dbPath);
+  initKeywordSchema();
+  backfillKeywords();
   logger.info("Memory database initialized");
 }
 
@@ -51,6 +54,11 @@ export async function storeMessage(opts: StoreMessageOptions): Promise<void> {
   }
 
   insertMessage({ id, timestamp, sender, role, text, embedding });
+  try {
+    indexMessageKeywords(id, text);
+  } catch (e) {
+    logger.warn("Failed to index keywords", { error: String(e) });
+  }
 
   if (entities && entities.length > 0) {
     const entityIds: number[] = [];

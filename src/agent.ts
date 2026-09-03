@@ -5,7 +5,7 @@ import { agentLoop, type AgentEvent, type AgentMessage, type AgentLoopConfig, ty
 import type { Config } from "./config.ts";
 import { allTools } from "./tools.ts";
 import { logger } from "./logger.ts";
-import { storeMessage } from "./memory/index.ts";
+import { storeMessage, buildRecallBlock } from "./memory/index.ts";
 import { buildSystemPrompt } from "./soul.ts";
 import { getLlmApiKey, getApiKeyForProvider, hasAnthropicAuth } from "./llm-auth.ts";
 import { createMediaSidecar } from "./media-sidecar.ts";
@@ -277,9 +277,15 @@ export function createAgentRunner(config: Config): AgentRunner {
 
     await compactIfNeeded();
 
+    // Walk the keyword memory graph from this message and surface passive
+    // "you remember" hints. Excludes the current session so it recalls the
+    // past, not the live conversation.
+    const recallBlock = buildRecallBlock(textForMemory, sessionStartedAt);
+
     const context = {
       systemPrompt:
         buildSystemPrompt() +
+        (recallBlock ? `\n\n${recallBlock}` : "") +
         (sessionSummary
           ? `\n\n## Earlier in this conversation (summary)\nOlder messages were compacted. Treat this as accurate history; if a detail you need isn't here, use recallMemory instead of guessing.\n${sessionSummary}`
           : ""),
