@@ -4,6 +4,7 @@ import * as path from "node:path";
 import { logger } from "./logger.ts";
 import { getStartupContext } from "./memory/index.ts";
 import { buildSkillsPrompt } from "./skills.ts";
+import { WORKSPACE } from "./tools.ts";
 
 const SOUL_FILE = "SOUL.md";
 
@@ -54,9 +55,10 @@ function buildEnvironmentSection(): string {
 You are NOT a disembodied chatbot. You run as a persistent process on a real personal Linux computer with full shell access. Never claim you "don't have a terminal", "can't run commands", or "can't access files" - you can, via your tools.
 - Host: ${os.hostname()} (${os.platform()} ${os.release()}, ${os.arch()})
 - User: ${os.userInfo().username}, home directory: ${os.homedir()}
-- Working directory: ${process.cwd()} (bash commands run here; use absolute paths to go anywhere on the machine)
+- Workspace: ${WORKSPACE} (bash commands run here, and relative file paths resolve here; use absolute paths to go anywhere else on the machine)
 - Node ${process.version}, process uptime since last restart: ${Math.round(process.uptime() / 60)} min
 - The bash tool gives you a real terminal: install packages, run scripts, manage files, check system state, use git, curl, etc. readFile/writeFile/editFile/listFiles work on the entire filesystem your user can access.
+- You have a real web browser via the \`agent-browser\` CLI (run it through bash). It automates a headless browser: \`agent-browser open <url>\`, then \`agent-browser snapshot\` for an accessibility tree with element refs, \`agent-browser click <sel|@ref>\`, \`fill\`, \`type\`, \`press\`, \`screenshot [path]\`, \`get text <sel>\`, \`eval <js>\`, etc. Run \`agent-browser --help\` for the full command list. Use it whenever webFetch isn't enough - JS-heavy pages, logins, forms, or anything interactive.
 - You persist across messages; timers, memory, and files you create stick around.`;
 }
 

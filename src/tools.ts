@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { Type, type Static } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { logger } from "./logger.ts";
@@ -10,6 +10,11 @@ import { queryMessages, getTopEntities, getEntityByNameFuzzy, getEntityRelations
 import type { Scheduler } from "./scheduler.ts";
 import type { AgentRunner } from "./agent.ts";
 import type { ThreadManager } from "./session.ts";
+
+// All file/bash operations are anchored to the agent's workspace: relative
+// paths resolve here and bash commands run here. Absolute paths still work.
+export const WORKSPACE = process.env.WORKING_DIRECTORY || process.cwd();
+const inWorkspace = (p: string): string => resolve(WORKSPACE, p);
 
 const EXA_MCP_URL = "https://mcp.exa.ai/mcp";
 
@@ -79,7 +84,7 @@ export const readFileTool: AgentTool<typeof readFileSchema> = {
   async execute(_toolCallId, params) {
     logger.toolCall("readFile", params, _toolCallId);
     try {
-      const content = readFileSync(params.path, "utf-8");
+      const content = readFileSync(inWorkspace(params.path), "utf-8");
       logger.toolResult("readFile", { path: params.path, length: content.length }, false, _toolCallId);
       return {
         content: [{ type: "text", text: content }],
@@ -109,11 +114,12 @@ export const writeFileTool: AgentTool<typeof writeFileSchema> = {
   async execute(_toolCallId, params) {
     logger.toolCall("writeFile", { path: params.path, contentLength: params.content.length }, _toolCallId);
     try {
-      const dir = dirname(params.path);
+      const filePath = inWorkspace(params.path);
+      const dir = dirname(filePath);
       if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true });
       }
-      writeFileSync(params.path, params.content, "utf-8");
+      writeFileSync(filePath, params.content, "utf-8");
       logger.toolResult("writeFile", { path: params.path, bytes: params.content.length }, false, _toolCallId);
       return {
         content: [{ type: "text", text: `Successfully wrote to ${params.path}` }],
@@ -144,7 +150,8 @@ export const editFileTool: AgentTool<typeof editFileSchema> = {
   async execute(_toolCallId, params) {
     logger.toolCall("editFile", { path: params.path, oldStringLength: params.oldString.length, newStringLength: params.newString.length }, _toolCallId);
     try {
-      const content = readFileSync(params.path, "utf-8");
+      const filePath = inWorkspace(params.path);
+      const content = readFileSync(filePath, "utf-8");
       if (!content.includes(params.oldString)) {
         logger.toolResult("editFile", { path: params.path, error: "String not found" }, true, _toolCallId);
         return {
@@ -153,7 +160,7 @@ export const editFileTool: AgentTool<typeof editFileSchema> = {
         };
       }
       const newContent = content.replace(params.oldString, params.newString);
-      writeFileSync(params.path, newContent, "utf-8");
+      writeFileSync(filePath, newContent, "utf-8");
       logger.toolResult("editFile", { path: params.path }, false, _toolCallId);
       return {
         content: [{ type: "text", text: `Successfully edited ${params.path}` }],
@@ -185,7 +192,7 @@ export const bashTool: AgentTool<typeof bashSchema> = {
       const result = execSync(params.command, {
         encoding: "utf-8",
         timeout: 30000,
-        cwd: process.cwd(),
+        cwd: WORKSPACE,
       });
       logger.toolResult("bash", { command: params.command, outputLength: result.length }, false, _toolCallId);
       return {
@@ -215,7 +222,7 @@ export const listFilesTool: AgentTool<typeof listFilesSchema> = {
   async execute(_toolCallId, params) {
     logger.toolCall("listFiles", { path: params.path }, _toolCallId);
     try {
-      const result = execSync(`ls -la "${params.path}"`, {
+      const result = execSync(`ls -la "${inWorkspace(params.path)}"`, {
         encoding: "utf-8",
         timeout: 5000,
       });
