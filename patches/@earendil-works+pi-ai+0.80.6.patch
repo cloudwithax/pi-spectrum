@@ -1,0 +1,67 @@
+diff --git a/node_modules/@earendil-works/pi-ai/dist/api/openai-completions.js b/node_modules/@earendil-works/pi-ai/dist/api/openai-completions.js
+index d764beb..4d97290 100644
+--- a/node_modules/@earendil-works/pi-ai/dist/api/openai-completions.js
++++ b/node_modules/@earendil-works/pi-ai/dist/api/openai-completions.js
+@@ -712,6 +712,23 @@ export function convertMessages(model, context, compat) {
+                             text: sanitizeSurrogates(item.text),
+                         };
+                     }
++                    else if (item.type === "audio") {
++                        return {
++                            type: "input_audio",
++                            input_audio: {
++                                data: item.data,
++                                format: item.format || "wav",
++                            },
++                        };
++                    }
++                    else if (item.type === "video") {
++                        return {
++                            type: "video_url",
++                            video_url: {
++                                url: `data:${item.mimeType};base64,${item.data}`,
++                            },
++                        };
++                    }
+                     else {
+                         return {
+                             type: "image_url",
+diff --git a/node_modules/@earendil-works/pi-ai/dist/types.d.ts b/node_modules/@earendil-works/pi-ai/dist/types.d.ts
+index b05dcff..54a2b5b 100644
+--- a/node_modules/@earendil-works/pi-ai/dist/types.d.ts
++++ b/node_modules/@earendil-works/pi-ai/dist/types.d.ts
+@@ -238,6 +238,16 @@ export interface ImageContent {
+     data: string;
+     mimeType: string;
+ }
++export interface AudioContent {
++    type: "audio";
++    data: string;
++    format: "wav" | "mp3" | "opus" | "m4a" | "ogg";
++}
++export interface VideoContent {
++    type: "video";
++    data: string;
++    mimeType: string;
++}
+ export interface ToolCall {
+     type: "toolCall";
+     id: string;
+@@ -270,7 +280,7 @@ export interface Usage {
+ export type StopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
+ export interface UserMessage {
+     role: "user";
+-    content: string | (TextContent | ImageContent)[];
++    content: string | (TextContent | ImageContent | AudioContent | VideoContent)[];
+     timestamp: number;
+ }
+ export interface AssistantMessage {
+@@ -590,7 +600,7 @@ export interface Model<TApi extends Api> {
+      * Missing keys use provider defaults. null marks a level as unsupported.
+      */
+     thinkingLevelMap?: ThinkingLevelMap;
+-    input: ("text" | "image")[];
++    input: ("text" | "image" | "audio" | "video")[];
+     cost: ModelCost;
+     contextWindow: number;
+     maxTokens: number;

@@ -99,6 +99,13 @@ export class DebounceQueue {
   }
 }
 
+export interface MessageAttachment {
+  mimeType: string;
+  data: string; // base64 encoded
+  kind: "image" | "audio" | "video" | "document";
+  name?: string; // original filename, used for document type detection
+}
+
 export interface QueuedMessage {
   id: string;
   text: string;
@@ -106,22 +113,30 @@ export interface QueuedMessage {
   platform: string;
   timestamp: Date;
   space: any; // Space reference for sending replies
+  attachments?: MessageAttachment[];
+}
+
+export interface PacedSender {
+  send: (text: string) => Promise<void>;
+  startTyping?: () => Promise<void>;
+  stopTyping?: () => Promise<void>;
 }
 
 /**
- * Send multiple messages with pacing.
- * iMessage doesn't handle rapid-fire messages well.
+ * Send multiple messages with pacing that mimics someone actually typing:
+ * a typing indicator plus a delay scaled to each chunk's length, instead of
+ * a flat gap. Without this, multi-chunk responses land in a single burst.
  */
 export async function sendPaced(
-  sendFn: (text: string) => Promise<void>,
+  sender: PacedSender,
   texts: string[],
-  delayMs = 500,
 ): Promise<void> {
-  for (let i = 0; i < texts.length; i++) {
-    if (i > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-    await sendFn(texts[i]);
+  for (const t of texts) {
+    const typingMs = Math.min(4000, Math.max(600, t.length * 35 + Math.random() * 400));
+    await sender.startTyping?.();
+    await new Promise((resolve) => setTimeout(resolve, typingMs));
+    await sender.stopTyping?.();
+    await sender.send(t);
   }
 }
 

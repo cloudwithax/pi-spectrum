@@ -6,20 +6,29 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "postinstall": "patch-package",
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "bun run src/index.ts"
+    "start": "systemctl --user start pi-spectrum && systemctl --user status pi-spectrum --no-pager -l | head -5",
+    "start-fg": "npx tsx src/index.ts",
+    "stop": "systemctl --user stop pi-spectrum && echo 'Stopped'",
+    "restart": "systemctl --user restart pi-spectrum && echo 'Restarted'",
+    "logs": "tail -f pi-spectrum.log"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "^0.80.6",
     "@earendil-works/pi-ai": "^0.80.6",
+    "@huggingface/transformers": "^4.2.0",
+    "cron-parser": "^5.6.2",
+    "dotenv": "^17.4.2",
     "spectrum-ts": "^9.1.0",
     "typebox": "1.1.38"
   },
   "devDependencies": {
-    "typescript": "^5.9.0",
+    "@types/node": "^22.19.19",
+    "patch-package": "^8.0.1",
     "tsx": "^4.22.1",
-    "@types/node": "^22.19.19"
+    "typescript": "^5.9.0"
   },
   "engines": {
     "node": ">=22.19.0"
