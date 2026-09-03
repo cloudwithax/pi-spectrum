@@ -1,4 +1,5 @@
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 import { logger } from "./logger.ts";
 import { getStartupContext } from "./memory/index.ts";
@@ -47,6 +48,17 @@ RULES:
 - When someone asks about a specific person, use getEntityInfo to get their full profile from the memory graph.
 
 You are connected via iMessage through Spectrum, the universal messaging platform.`;
+
+function buildEnvironmentSection(): string {
+  return `ENVIRONMENT:
+You are NOT a disembodied chatbot. You run as a persistent process on a real personal Linux computer with full shell access. Never claim you "don't have a terminal", "can't run commands", or "can't access files" - you can, via your tools.
+- Host: ${os.hostname()} (${os.platform()} ${os.release()}, ${os.arch()})
+- User: ${os.userInfo().username}, home directory: ${os.homedir()}
+- Working directory: ${process.cwd()} (bash commands run here; use absolute paths to go anywhere on the machine)
+- Node ${process.version}, process uptime since last restart: ${Math.round(process.uptime() / 60)} min
+- The bash tool gives you a real terminal: install packages, run scripts, manage files, check system state, use git, curl, etc. readFile/writeFile/editFile/listFiles work on the entire filesystem your user can access.
+- You persist across messages; timers, memory, and files you create stick around.`;
+}
 
 const DEFAULT_PERSONALITY = `You are an AI assistant with a persistent memory graph integrated into iMessage. You can help with:
 - Reading, writing, and editing files
@@ -113,5 +125,5 @@ export function buildSystemPrompt(): string {
     startupContext = "[Memory system not available]";
   }
 
-  return `${personality}\n\nCURRENT DATE AND TIME: ${dateTime}\n\nSTARTUP CONTEXT:\n${startupContext}\n\n${TOOLS_AND_RULES}${buildSkillsPrompt()}`;
+  return `${personality}\n\nCURRENT DATE AND TIME: ${dateTime}\n\n${buildEnvironmentSection()}\n\nSTARTUP CONTEXT:\n${startupContext}\n\n${TOOLS_AND_RULES}${buildSkillsPrompt()}`;
 }
